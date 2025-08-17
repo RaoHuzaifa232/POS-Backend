@@ -8,6 +8,11 @@ export class CreateCategoryDto {
   name: string;
 
   @ApiProperty()
+  @IsNotEmpty()
   @IsString()
-  description: string;
+  color: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  description?: string;
 }

@@ -1,50 +1,31 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsNumber, IsString, Min } from 'class-validator';
+import { IsOptional, IsNumber, IsString } from 'class-validator';
 
-export class UpdateProductDto {
+export class UpdatePurchaseDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  name?: string;
+  productId?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  productName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
-  @Min(0)
-  sellingPrice?: number;
+  quantity?: number;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
-  @Min(0)
   costPrice?: number;
 
   @ApiProperty({ required: false })
   @IsOptional()
-  @IsString()
-  category?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  image?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
   @IsNumber()
-  @Min(0)
-  stock?: number;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  minStock?: number;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  barcode?: string;
+  totalCost?: number;
 
   @ApiProperty({ required: false })
   @IsOptional()
@@ -54,5 +35,14 @@ export class UpdateProductDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  description?: string;
+  invoiceNumber?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  purchaseDate?: Date;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }

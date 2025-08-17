@@ -1,16 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema()
+@Schema({ timestamps: true })
 export class Category {
   @Prop({ required: true })
   name: string;
 
-  @Prop()
-  description: string;
+  @Prop({ required: true })
+  color: string;
 
-  @Prop({ default: Date.now })
-  createdAt: Date;
+  @Prop()
+  description?: string;
 }
 
 export type CategoryDocument = Category & Document;

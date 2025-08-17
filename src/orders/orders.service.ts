@@ -19,7 +19,7 @@ export class OrdersService {
     // Update stock for each item
     for (const item of createOrderDto.items) {
       await this.stockService.recordMovement(
-        item.productId,
+        item.product,
         item.quantity,
         'OUT',
         // createdOrder._id.toString(),

@@ -1,22 +1,22 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema()
+@Schema({ timestamps: true })
 export class Supplier {
   @Prop({ required: true })
   name: string;
 
-  @Prop()
-  address: string;
-
   @Prop({ required: true })
-  phone: string;
+  contact: string;
 
   @Prop()
-  email: string;
+  email?: string;
 
-  @Prop({ default: Date.now })
-  createdAt: Date;
+  @Prop()
+  address?: string;
+
+  @Prop()
+  phone?: string;
 }
 
 export type SupplierDocument = Supplier & Document;

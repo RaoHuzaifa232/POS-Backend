@@ -1,58 +1,58 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsOptional, IsNumber, IsString, Min } from 'class-validator';
+import { IsOptional, IsNumber, IsString, IsEnum } from 'class-validator';
 
-export class UpdateProductDto {
+export class UpdateSalesReturnDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  name?: string;
+  orderId?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  productId?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  productName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
-  @Min(0)
-  sellingPrice?: number;
+  quantity?: number;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
-  @Min(0)
-  costPrice?: number;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  category?: string;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsString()
-  image?: string;
+  unitPrice?: number;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsNumber()
-  @Min(0)
-  stock?: number;
-
-  @ApiProperty({ required: false })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  minStock?: number;
+  totalAmount?: number;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  barcode?: string;
+  reason?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  returnDate?: Date;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  supplier?: string;
+  customerName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  description?: string;
+  notes?: string;
+
+  @ApiProperty({ required: false, enum: ['pending', 'approved', 'rejected'] })
+  @IsOptional()
+  @IsEnum(['pending', 'approved', 'rejected'])
+  status?: string;
 }
