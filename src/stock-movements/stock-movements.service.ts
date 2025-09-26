@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { StockMovement, StockMovementDocument } from '../schemas/stock-movement.schema';
+import { StockMovement, StockMovementDocument } from '../schemas/stock.schema';
 import { CreateStockMovementDto } from './dto/create-stock-movement.dto';
 import { UpdateStockMovementDto } from './dto/update-stock-movement.dto';
 
@@ -17,7 +17,7 @@ export class StockMovementsService {
   }
 
   async findAll(): Promise<StockMovement[]> {
-    return this.stockMovementModel.find().exec();
+    return this.stockMovementModel.find().sort({ createdAt: -1 }).exec();
   }
 
   async findOne(id: string): Promise<StockMovement> {

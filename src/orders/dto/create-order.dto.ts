@@ -5,6 +5,7 @@ import { Type } from 'class-transformer';
 export class CartItemDto {
   @ApiProperty()
   @IsNotEmpty()
+  @IsString()
   product: string;
 
   @ApiProperty()

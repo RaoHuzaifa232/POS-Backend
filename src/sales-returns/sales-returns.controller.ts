@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Body, Put, Param, Delete } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Controller, Get, Post, Body, Put, Param, Delete, Patch } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { SalesReturnsService } from './sales-returns.service';
 import { CreateSalesReturnDto } from './dto/create-sales-return.dto';
 import { UpdateSalesReturnDto } from './dto/update-sales-return.dto';
@@ -31,6 +31,13 @@ export class SalesReturnsController {
   @ApiOperation({ summary: 'Update a sales return' })
   update(@Param('id') id: string, @Body() updateSalesReturnDto: UpdateSalesReturnDto) {
     return this.salesReturnsService.update(id, updateSalesReturnDto);
+  }
+
+  @Patch(':id/status')
+  @ApiOperation({ summary: 'Update sales return status' })
+  @ApiBody({ schema: { properties: { status: { type: 'string', enum: ['pending', 'approved', 'rejected'] } } } })
+  updateStatus(@Param('id') id: string, @Body('status') status: 'pending' | 'approved' | 'rejected') {
+    return this.salesReturnsService.updateStatus(id, status);
   }
 
   @Delete(':id')

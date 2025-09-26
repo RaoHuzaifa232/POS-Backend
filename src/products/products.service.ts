@@ -28,6 +28,35 @@ export class ProductsService {
     return product;
   }
 
+  async search(query: string): Promise<Product[]> {
+    if (!query || query.trim() === '') {
+      return this.findAll();
+    }
+
+    const searchRegex = new RegExp(query, 'i');
+    return this.productModel.find({
+      $or: [
+        { name: searchRegex },
+        { description: searchRegex },
+        { category: searchRegex },
+        { barcode: query },
+        { supplier: searchRegex },
+      ],
+    }).exec();
+  }
+
+  async findByCategory(category: string): Promise<Product[]> {
+    return this.productModel.find({ category }).exec();
+  }
+
+  async findBySupplier(supplier: string): Promise<Product[]> {
+    return this.productModel.find({ supplier }).exec();
+  }
+
+  async findLowStock(): Promise<Product[]> {
+    return this.productModel.find({ $expr: { $lte: ['$stock', '$minStock'] } }).exec();
+  }
+
   async update(
     id: string,
     updateProductDto: UpdateProductDto,

@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Param } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { StockService } from './stock.service';
-import { CreateLegacyStockMovementDto } from './dto/create-stock-movement.dto';
+import { CreateStockMovementDto } from './dto/create-stock-movement.dto';
 
 @ApiTags('stock')
 @Controller('stock')
@@ -10,11 +10,12 @@ export class StockController {
 
   @Post('movement')
   @ApiOperation({ summary: 'Record a stock movement' })
-  createMovement(@Body() createStockMovementDto: CreateLegacyStockMovementDto) {
+  createMovement(@Body() createStockMovementDto: CreateStockMovementDto) {
     return this.stockService.recordMovement(
       createStockMovementDto.productId,
       createStockMovementDto.quantity,
       createStockMovementDto.type,
+      createStockMovementDto.reason,
       createStockMovementDto.reference,
     );
   }
