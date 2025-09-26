@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Product {
@@ -12,8 +12,11 @@ export class Product {
   @Prop({ required: true })
   costPrice: number;
 
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Category' })
+  categoryId?: string;
+
   @Prop({ required: true })
-  category: string;
+  category: string; // Keep for backward compatibility and easy filtering
 
   @Prop()
   image?: string;
@@ -27,8 +30,11 @@ export class Product {
   @Prop()
   barcode?: string;
 
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Supplier' })
+  supplierId?: string;
+
   @Prop()
-  supplier?: string;
+  supplier?: string; // Keep for backward compatibility and easy filtering
 
   @Prop()
   description?: string;

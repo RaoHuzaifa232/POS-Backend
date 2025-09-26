@@ -12,8 +12,8 @@ export class CreateStockMovementDto {
   @IsString()
   productName: string;
 
-  @ApiProperty({ enum: ['in', 'out', 'adjustment'] })
-  @IsEnum(['in', 'out', 'adjustment'])
+  @ApiProperty({ enum: ['IN', 'OUT', 'ADJUSTMENT'] })
+  @IsEnum(['IN', 'OUT', 'ADJUSTMENT'])
   type: string;
 
   @ApiProperty()
@@ -29,4 +29,7 @@ export class CreateStockMovementDto {
   @ApiProperty({ required: false })
   @IsString()
   reference?: string;
+
+  @ApiProperty({ required: false })
+  timestamp?: Date;
 }

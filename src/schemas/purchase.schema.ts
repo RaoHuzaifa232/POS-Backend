@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Purchase {
-  @Prop({ required: true })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Product', required: true })
   productId: string;
 
   @Prop({ required: true })
@@ -18,13 +18,16 @@ export class Purchase {
   @Prop({ required: true })
   totalCost: number;
 
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Supplier' })
+  supplierId?: string;
+
   @Prop({ required: true })
-  supplier: string;
+  supplier: string; // Keep for backward compatibility
 
   @Prop()
   invoiceNumber?: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, default: Date.now })
   purchaseDate: Date;
 
   @Prop()

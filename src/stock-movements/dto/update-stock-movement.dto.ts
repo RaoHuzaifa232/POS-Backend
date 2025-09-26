@@ -31,4 +31,9 @@ export class UpdateStockMovementDto {
   @IsOptional()
   @IsString()
   reference?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  timestamp: string;
 }

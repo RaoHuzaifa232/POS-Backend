@@ -11,6 +11,7 @@ import { PurchasesModule } from './purchases/purchases.module';
 import { StockMovementsModule } from './stock-movements/stock-movements.module';
 import { SalesReturnsModule } from './sales-returns/sales-returns.module';
 import { PurchaseReturnsModule } from './purchase-returns/purchase-returns.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { PurchaseReturnsModule } from './purchase-returns/purchase-returns.modul
     PurchasesModule,
     StockMovementsModule,
     SalesReturnsModule,
-    PurchaseReturnsModule
+    PurchaseReturnsModule,
+    DashboardModule
   ],
   controllers: [AppController],
   providers: [AppService],

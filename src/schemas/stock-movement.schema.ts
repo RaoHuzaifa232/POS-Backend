@@ -1,15 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class StockMovement {
-  @Prop({ required: true })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Product', required: true })
   productId: string;
 
   @Prop({ required: true })
   productName: string;
 
-  @Prop({ required: true, enum: ['in', 'out', 'adjustment'] })
+  @Prop({ required: true, enum: ['IN', 'OUT', 'ADJUSTMENT'] })
   type: string;
 
   @Prop({ required: true })
@@ -20,6 +20,9 @@ export class StockMovement {
 
   @Prop()
   reference?: string;
+
+  @Prop({ required: true, default: Date.now })
+  timestamp: Date;
 }
 
 export type StockMovementDocument = StockMovement & Document;
