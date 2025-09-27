@@ -16,6 +16,7 @@ export class SeedService {
   ) {}
 
   async seedDatabase() {
+    return;
     // Check if data already exists
     const productCount = await this.productModel.countDocuments();
     if (productCount > 0) {

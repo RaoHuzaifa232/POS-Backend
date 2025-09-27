@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import { PaymentMethod, PaymentMethodDocument } from '../schemas/payment-method.schema';
 import { CreatePaymentMethodDto } from './dto/create-payment-method.dto';
 import { UpdatePaymentMethodDto } from './dto/update-payment-method.dto';
+import { applyDefaults, DEFAULT_VALUES } from '../common/utils/field-defaults.util';
+import { sanitizeObjectId } from '../common/utils/validation.util';
 
 @Injectable()
 export class PaymentMethodsService {
@@ -12,7 +14,9 @@ export class PaymentMethodsService {
   ) {}
 
   async create(createPaymentMethodDto: CreatePaymentMethodDto): Promise<PaymentMethod> {
-    const createdPaymentMethod = new this.paymentMethodModel(createPaymentMethodDto);
+    // Apply default values for optional fields
+    const paymentMethodData = applyDefaults(createPaymentMethodDto, DEFAULT_VALUES.paymentMethod);
+    const createdPaymentMethod = new this.paymentMethodModel(paymentMethodData);
     return createdPaymentMethod.save();
   }
 
@@ -25,27 +29,32 @@ export class PaymentMethodsService {
   }
 
   async findOne(id: string): Promise<PaymentMethod> {
-    const paymentMethod = await this.paymentMethodModel.findById(id).exec();
+    const validId = sanitizeObjectId(id, 'PaymentMethod');
+    const paymentMethod = await this.paymentMethodModel.findById(validId).exec();
     if (!paymentMethod) {
-      throw new NotFoundException(`Payment method with ID ${id} not found`);
+      throw new NotFoundException(`Payment method with ID ${validId} not found`);
     }
     return paymentMethod;
   }
 
   async update(id: string, updatePaymentMethodDto: UpdatePaymentMethodDto): Promise<PaymentMethod> {
+    const validId = sanitizeObjectId(id, 'PaymentMethod');
+    // Apply default values for optional fields
+    const paymentMethodData = applyDefaults(updatePaymentMethodDto, DEFAULT_VALUES.paymentMethod);
     const updatedPaymentMethod = await this.paymentMethodModel
-      .findByIdAndUpdate(id, updatePaymentMethodDto, { new: true })
+      .findByIdAndUpdate(validId, paymentMethodData, { new: true })
       .exec();
     if (!updatedPaymentMethod) {
-      throw new NotFoundException(`Payment method with ID ${id} not found`);
+      throw new NotFoundException(`Payment method with ID ${validId} not found`);
     }
     return updatedPaymentMethod;
   }
 
   async remove(id: string): Promise<PaymentMethod> {
-    const deletedPaymentMethod = await this.paymentMethodModel.findByIdAndDelete(id).exec();
+    const validId = sanitizeObjectId(id, 'PaymentMethod');
+    const deletedPaymentMethod = await this.paymentMethodModel.findByIdAndDelete(validId).exec();
     if (!deletedPaymentMethod) {
-      throw new NotFoundException(`Payment method with ID ${id} not found`);
+      throw new NotFoundException(`Payment method with ID ${validId} not found`);
     }
     return deletedPaymentMethod;
   }

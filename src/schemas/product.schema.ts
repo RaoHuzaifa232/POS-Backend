@@ -27,7 +27,7 @@ export class Product {
   @Prop({ required: true, default: 0 })
   minStock: number;
 
-  @Prop({ unique: true, sparse: true })
+  @Prop({ sparse: true })
   barcode?: string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Supplier' })

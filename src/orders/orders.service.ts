@@ -6,6 +6,8 @@ import { Product, ProductDocument } from '../schemas/product.schema';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { StockService } from '../stock/stock.service';
+import { applyDefaults, DEFAULT_VALUES } from '../common/utils/field-defaults.util';
+import { sanitizeObjectId } from '../common/utils/validation.util';
 
 @Injectable()
 export class OrdersService {
@@ -38,8 +40,9 @@ export class OrdersService {
       }
     }
 
-    // Create order
-    const createdOrder = new this.orderModel(createOrderDto);
+    // Apply default values and create order
+    const orderData = applyDefaults(createOrderDto, DEFAULT_VALUES.order);
+    const createdOrder = new this.orderModel(orderData);
     await createdOrder.save();
 
     // Update stock and create movements
@@ -72,32 +75,37 @@ export class OrdersService {
   }
 
   async findOne(id: string): Promise<Order> {
+    const validId = sanitizeObjectId(id, 'Order');
     const order = await this.orderModel
-      .findById(id)
+      .findById(validId)
       .populate('items.product', 'name sellingPrice costPrice category stock')
       .exec();
     
     if (!order) {
-      throw new NotFoundException(`Order with ID ${id} not found`);
+      throw new NotFoundException(`Order with ID ${validId} not found`);
     }
     return order;
   }
 
   async update(id: string, updateOrderDto: UpdateOrderDto): Promise<Order> {
+    const validId = sanitizeObjectId(id, 'Order');
+    // Apply default values for optional fields
+    const orderData = applyDefaults(updateOrderDto, DEFAULT_VALUES.order);
     const updatedOrder = await this.orderModel
-      .findByIdAndUpdate(id, updateOrderDto, { new: true })
+      .findByIdAndUpdate(validId, orderData, { new: true })
       .populate('items.product', 'name sellingPrice costPrice category stock')
       .exec();
     if (!updatedOrder) {
-      throw new NotFoundException(`Order with ID ${id} not found`);
+      throw new NotFoundException(`Order with ID ${validId} not found`);
     }
     return updatedOrder;
   }
 
   async remove(id: string): Promise<Order> {
-    const deletedOrder = await this.orderModel.findByIdAndDelete(id).exec();
+    const validId = sanitizeObjectId(id, 'Order');
+    const deletedOrder = await this.orderModel.findByIdAndDelete(validId).exec();
     if (!deletedOrder) {
-      throw new NotFoundException(`Order with ID ${id} not found`);
+      throw new NotFoundException(`Order with ID ${validId} not found`);
     }
     return deletedOrder;
   }

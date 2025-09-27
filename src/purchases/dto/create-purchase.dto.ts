@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsNumber, IsString, IsOptional, Min } from 'class-validator';
+import { DefaultString } from '../../common/decorators/default-value.decorator';
 
 export class CreatePurchaseDto {
   @ApiProperty()
@@ -38,6 +39,7 @@ export class CreatePurchaseDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @DefaultString('')
   invoiceNumber?: string;
 
   @ApiProperty()
@@ -47,5 +49,6 @@ export class CreatePurchaseDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
+  @DefaultString('')
   notes?: string;
 }

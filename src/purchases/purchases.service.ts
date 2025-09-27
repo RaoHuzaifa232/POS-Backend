@@ -6,6 +6,7 @@ import { Product, ProductDocument } from '../schemas/product.schema';
 import { CreatePurchaseDto } from './dto/create-purchase.dto';
 import { UpdatePurchaseDto } from './dto/update-purchase.dto';
 import { StockService } from '../stock/stock.service';
+import { applyDefaults, DEFAULT_VALUES } from '../common/utils/field-defaults.util';
 
 @Injectable()
 export class PurchasesService {
@@ -16,8 +17,9 @@ export class PurchasesService {
   ) {}
 
   async create(createPurchaseDto: CreatePurchaseDto): Promise<Purchase> {
-    // Create purchase
-    const createdPurchase = new this.purchaseModel(createPurchaseDto);
+    // Apply default values and create purchase
+    const purchaseData = applyDefaults(createPurchaseDto, DEFAULT_VALUES.purchase);
+    const createdPurchase = new this.purchaseModel(purchaseData);
     await createdPurchase.save();
 
     // Update product stock

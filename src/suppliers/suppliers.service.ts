@@ -4,6 +4,8 @@ import { Model } from 'mongoose';
 import { Supplier, SupplierDocument } from '../schemas/supplier.schema';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
 import { UpdateSupplierDto } from './dto/update-supplier.dto';
+import { applyDefaults, DEFAULT_VALUES } from '../common/utils/field-defaults.util';
+import { sanitizeObjectId } from '../common/utils/validation.util';
 
 @Injectable()
 export class SuppliersService {
@@ -12,7 +14,9 @@ export class SuppliersService {
   ) {}
 
   async create(createSupplierDto: CreateSupplierDto): Promise<Supplier> {
-    const createdSupplier = new this.supplierModel(createSupplierDto);
+    // Apply default values for optional fields
+    const supplierData = applyDefaults(createSupplierDto, DEFAULT_VALUES.supplier);
+    const createdSupplier = new this.supplierModel(supplierData);
     return createdSupplier.save();
   }
 
@@ -21,27 +25,32 @@ export class SuppliersService {
   }
 
   async findOne(id: string): Promise<Supplier> {
-    const supplier = await this.supplierModel.findById(id).exec();
+    const validId = sanitizeObjectId(id, 'Supplier');
+    const supplier = await this.supplierModel.findById(validId).exec();
     if (!supplier) {
-      throw new NotFoundException(`Supplier with ID ${id} not found`);
+      throw new NotFoundException(`Supplier with ID ${validId} not found`);
     }
     return supplier;
   }
 
   async update(id: string, updateSupplierDto: UpdateSupplierDto): Promise<Supplier> {
+    const validId = sanitizeObjectId(id, 'Supplier');
+    // Apply default values for optional fields
+    const supplierData = applyDefaults(updateSupplierDto, DEFAULT_VALUES.supplier);
     const updatedSupplier = await this.supplierModel
-      .findByIdAndUpdate(id, updateSupplierDto, { new: true })
+      .findByIdAndUpdate(validId, supplierData, { new: true })
       .exec();
     if (!updatedSupplier) {
-      throw new NotFoundException(`Supplier with ID ${id} not found`);
+      throw new NotFoundException(`Supplier with ID ${validId} not found`);
     }
     return updatedSupplier;
   }
 
   async remove(id: string): Promise<Supplier> {
-    const deletedSupplier = await this.supplierModel.findByIdAndDelete(id).exec();
+    const validId = sanitizeObjectId(id, 'Supplier');
+    const deletedSupplier = await this.supplierModel.findByIdAndDelete(validId).exec();
     if (!deletedSupplier) {
-      throw new NotFoundException(`Supplier with ID ${id} not found`);
+      throw new NotFoundException(`Supplier with ID ${validId} not found`);
     }
     return deletedSupplier;
   }
