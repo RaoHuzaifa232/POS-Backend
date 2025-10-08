@@ -3,14 +3,14 @@ import {
   Get,
   Post,
   Body,
-//   Put,
+  Put,
   Param,
-//   Delete,
+  Delete,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { SuppliersService } from './suppliers.service';
 import { CreateSupplierDto } from './dto/create-supplier.dto';
-// import { UpdateSupplierDto } from './dto/update-supplier.dto';
+import { UpdateSupplierDto } from './dto/update-supplier.dto';
 
 @ApiTags('suppliers')
 @Controller('suppliers')
@@ -35,18 +35,18 @@ export class SuppliersController {
     return this.suppliersService.findOne(id);
   }
 
-//   @Put(':id')
-//   @ApiOperation({ summary: 'Update a supplier' })
-//   update(
-//     @Param('id') id: string,
-//     @Body() updateSupplierDto: UpdateSupplierDto,
-//   ) {
-//     return this.suppliersService.update(id, updateSupplierDto);
-//   }
+  @Put(':id')
+  @ApiOperation({ summary: 'Update a supplier' })
+  update(
+    @Param('id') id: string,
+    @Body() updateSupplierDto: UpdateSupplierDto,
+  ) {
+    return this.suppliersService.update(id, updateSupplierDto);
+  }
 
-//   @Delete(':id')
-//   @ApiOperation({ summary: 'Delete a supplier' })
-//   remove(@Param('id') id: string) {
-//     return this.suppliersService.remove(id);
-//   }
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a supplier' })
+  remove(@Param('id') id: string) {
+    return this.suppliersService.remove(id);
+  }
 }

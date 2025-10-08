@@ -1,10 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsString, IsArray, ValidateNested } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsArray, ValidateNested, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
+import { DefaultNumber, DefaultString } from '../../common/decorators/default-value.decorator';
 
 export class CartItemDto {
   @ApiProperty()
   @IsNotEmpty()
+  @IsString()
   product: string;
 
   @ApiProperty()
@@ -37,6 +39,7 @@ export class CreateOrderDto {
 
   @ApiProperty({ default: 0 })
   @IsNumber()
+  @DefaultNumber(0)
   discount: number;
 
   @ApiProperty()
@@ -49,7 +52,9 @@ export class CreateOrderDto {
   paymentMethod: string;
 
   @ApiProperty({ required: false })
+  @IsOptional()
   @IsString()
+  @DefaultString('')
   customerName?: string;
 
   @ApiProperty({ enum: ['sale', 'purchase'] })

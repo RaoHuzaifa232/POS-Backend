@@ -27,13 +27,13 @@ export class SalesReturn {
   @Prop({ required: true })
   returnDate: Date;
 
-  @Prop()
+  @Prop({ default: '' })
   customerName?: string;
 
-  @Prop()
+  @Prop({ default: '' })
   notes?: string;
 
-  @Prop({ required: true, enum: ['pending', 'approved', 'rejected'] })
+  @Prop({ required: true, enum: ['pending', 'approved', 'rejected'], default: 'pending' })
   status: string;
 }
 

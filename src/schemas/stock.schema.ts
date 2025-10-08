@@ -1,22 +1,25 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
-@Schema()
+@Schema({ timestamps: true })
 export class StockMovement {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Product', required: true })
   productId: string;
 
   @Prop({ required: true })
-  quantity: number;
+  productName: string;
 
-  @Prop({ required: true, enum: ['IN', 'OUT'] })
+  @Prop({ required: true, enum: ['in', 'out', 'adjustment'] })
   type: string;
 
-  @Prop()
-  reference: string;
+  @Prop({ required: true })
+  quantity: number;
 
-  @Prop({ default: Date.now })
-  createdAt: Date;
+  @Prop({ required: true })
+  reason: string;
+
+  @Prop()
+  reference?: string;
 }
 
 export type StockMovementDocument = StockMovement & Document;

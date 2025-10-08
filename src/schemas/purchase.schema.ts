@@ -21,13 +21,13 @@ export class Purchase {
   @Prop({ required: true })
   supplier: string;
 
-  @Prop()
+  @Prop({ default: '' })
   invoiceNumber?: string;
 
   @Prop({ required: true })
   purchaseDate: Date;
 
-  @Prop()
+  @Prop({ default: '' })
   notes?: string;
 }
 

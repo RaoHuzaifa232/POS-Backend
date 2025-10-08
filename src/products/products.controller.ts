@@ -6,8 +6,9 @@ import {
   Put,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -27,6 +28,31 @@ export class ProductsController {
   @ApiOperation({ summary: 'Get all products' })
   findAll() {
     return this.productsService.findAll();
+  }
+
+  @Get('search')
+  @ApiOperation({ summary: 'Search products by name, barcode, or category' })
+  @ApiQuery({ name: 'q', description: 'Search query' })
+  search(@Query('q') query: string) {
+    return this.productsService.search(query);
+  }
+
+  @Get('category/:category')
+  @ApiOperation({ summary: 'Get products by category' })
+  findByCategory(@Param('category') category: string) {
+    return this.productsService.findByCategory(category);
+  }
+
+  @Get('supplier/:supplier')
+  @ApiOperation({ summary: 'Get products by supplier' })
+  findBySupplier(@Param('supplier') supplier: string) {
+    return this.productsService.findBySupplier(supplier);
+  }
+
+  @Get('low-stock')
+  @ApiOperation({ summary: 'Get low stock products' })
+  findLowStock() {
+    return this.productsService.findLowStock();
   }
 
   @Get(':id')

@@ -38,7 +38,21 @@ export class Order {
 
   @Prop([CartItem])
   items: CartItem[];
+
+  // Add timestamp field for frontend compatibility
+  @Prop({ default: Date.now })
+  timestamp: Date;
 }
 
 export type OrderDocument = Order & Document;
 export const OrderSchema = SchemaFactory.createForClass(Order);
+
+// Transform _id to id for frontend compatibility
+OrderSchema.set('toJSON', {
+  transform: function(doc: any, ret: any) {
+    ret.id = ret._id;
+    delete ret._id;
+    delete ret.__v;
+    return ret;
+  }
+});
