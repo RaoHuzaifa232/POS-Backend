@@ -29,6 +29,10 @@ export class Purchase {
 
   @Prop({ default: '' })
   notes?: string;
+
+  // Soft delete support - when set, the purchase is considered deleted
+  @Prop()
+  deletedAt?: Date;
 }
 
 export type PurchaseDocument = Purchase & Document;

@@ -38,6 +38,10 @@ export class Product {
 
   @Prop()
   description?: string;
+
+  // Soft delete support - when set, the product is considered deleted
+  @Prop()
+  deletedAt?: Date;
 }
 
 export type ProductDocument = Product & Document;
