@@ -42,6 +42,10 @@ export class Order {
   // Add timestamp field for frontend compatibility
   @Prop({ default: Date.now })
   timestamp: Date;
+
+  // Soft delete support - when set, the order is considered deleted
+  @Prop()
+  deletedAt?: Date;
 }
 
 export type OrderDocument = Order & Document;

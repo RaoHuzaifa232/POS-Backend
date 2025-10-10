@@ -28,8 +28,14 @@ export class DashboardController {
   @Get('sales-summary')
   @ApiOperation({ summary: 'Get sales summary' })
   @ApiQuery({ name: 'period', required: false, description: 'Period in days (e.g., 30d)' })
-  getSalesSummary(@Query('period') period?: string) {
-    return this.dashboardService.getSalesSummary(period);
+  @ApiQuery({ name: 'startDate', required: false, description: 'Start date for custom range (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'endDate', required: false, description: 'End date for custom range (YYYY-MM-DD)' })
+  getSalesSummary(
+    @Query('period') period?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.dashboardService.getSalesSummary(period, startDate, endDate);
   }
 
   @Get('top-products')

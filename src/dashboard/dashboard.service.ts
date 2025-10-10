@@ -89,13 +89,28 @@ export class DashboardService {
     return this.productModel.find({ stock: 0 }).exec();
   }
 
-  async getSalesSummary(period: string = '30d') {
-    const days = parseInt(period.replace('d', ''));
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+  async getSalesSummary(period?: string, startDate?: string, endDate?: string) {
+    let start: Date;
+    let end: Date;
+
+    // If custom date range is provided, use it
+    if (startDate && endDate) {
+      start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+    } else {
+      // Otherwise, use period (default: 30d)
+      const days = parseInt((period || '30d').replace('d', ''));
+      start = new Date();
+      start.setDate(start.getDate() - days);
+      start.setHours(0, 0, 0, 0);
+      end = new Date();
+      end.setHours(23, 59, 59, 999);
+    }
 
     return this.orderModel.aggregate([
-      { $match: { type: 'sale', createdAt: { $gte: startDate } } },
+      { $match: { type: 'sale', createdAt: { $gte: start, $lte: end } } },
       {
         $group: {
           _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
