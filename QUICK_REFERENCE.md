@@ -1,550 +1,447 @@
-# Quick Reference Guide
+# Quick Reference Guide - New Features & API Updates
 
-A cheat sheet for common backend development tasks in your NestJS project.
+## 🔧 Configuration
 
----
+### Environment Variables
 
-## NestJS Decorators Cheat Sheet
+Create a `.env` file in the root directory:
 
-### Module Decorators
-```typescript
-@Module({
-  imports: [OtherModule],
-  controllers: [MyController],
-  providers: [MyService],
-  exports: [MyService],  // Make available to other modules
-})
-```
-
-### Controller Decorators
-```typescript
-@Controller('route')           // Base route
-@Get()                         // GET /route
-@Get(':id')                    // GET /route/:id
-@Post()                        // POST /route
-@Put(':id')                    // PUT /route/:id
-@Patch(':id')                  // PATCH /route/:id
-@Delete(':id')                 // DELETE /route/:id
-
-@Body()                        // Request body
-@Param('id')                   // URL parameter
-@Query('search')               // Query parameter
-@Headers('authorization')      // Header value
-```
-
-### Service Decorators
-```typescript
-@Injectable()                  // Makes class injectable
-```
-
-### Validation Decorators (class-validator)
-```typescript
-@IsString()                   // Must be string
-@IsNumber()                   // Must be number
-@IsBoolean()                  // Must be boolean
-@IsArray()                    // Must be array
-@IsOptional()                 // Field is optional
-@IsNotEmpty()                 // Cannot be empty
-@IsEmail()                    // Must be valid email
-@Min(0)                       // Minimum value
-@Max(100)                     // Maximum value
-@Length(3, 20)                // String length
-@Matches(/regex/)             // Regex pattern
-```
-
-### Swagger Decorators
-```typescript
-@ApiTags('products')           // Group in Swagger
-@ApiOperation({ summary: '...' })  // Endpoint description
-@ApiProperty()                // Property documentation
-@ApiResponse({ status: 200 }) // Response documentation
-```
-
----
-
-## MongoDB/Mongoose Operations
-
-### Create
-```typescript
-// Method 1: Create and save
-const product = new this.productModel(data);
-await product.save();
-
-// Method 2: Create directly
-await this.productModel.create(data);
-```
-
-### Read
-```typescript
-// Find all
-await this.productModel.find().exec();
-
-// Find one
-await this.productModel.findOne({ name: 'Laptop' }).exec();
-
-// Find by ID
-await this.productModel.findById(id).exec();
-
-// Find with conditions
-await this.productModel.find({ stock: { $gt: 0 } }).exec();
-
-// Count documents
-await this.productModel.countDocuments({ stock: 0 }).exec();
-```
-
-### Update
-```typescript
-// Update and return updated document
-await this.productModel.findByIdAndUpdate(
-  id,
-  { stock: 10 },
-  { new: true }
-).exec();
-
-// Update multiple
-await this.productModel.updateMany(
-  { stock: 0 },
-  { $set: { status: 'out-of-stock' } }
-).exec();
-```
-
-### Delete
-```typescript
-// Delete one
-await this.productModel.findByIdAndDelete(id).exec();
-
-// Delete multiple
-await this.productModel.deleteMany({ stock: 0 }).exec();
-```
-
-### Query Operators
-```typescript
-// Comparison
-{ price: { $gt: 100 } }      // Greater than
-{ price: { $gte: 100 } }      // Greater than or equal
-{ price: { $lt: 100 } }       // Less than
-{ price: { $lte: 100 } }      // Less than or equal
-{ price: { $ne: 100 } }       // Not equal
-{ price: { $in: [10, 20, 30] } }  // In array
-
-// Logical
-{ $or: [{ stock: 0 }, { price: 0 }] }  // OR
-{ $and: [{ stock: { $gt: 0 } }, { price: { $gt: 0 } }] }  // AND
-{ $not: { stock: 0 } }       // NOT
-
-// Array
-{ tags: { $in: ['electronics'] } }  // Array contains
-{ tags: { $all: ['electronics', 'sale'] } }  // Array contains all
-
-// Text search
-{ $text: { $search: 'laptop' } }  // Text search (requires text index)
-```
-
-### Aggregation
-```typescript
-await this.productModel.aggregate([
-  { $match: { stock: { $gt: 0 } } },  // Filter
-  { $group: { _id: '$category', total: { $sum: '$stock' } } },  // Group
-  { $sort: { total: -1 } },  // Sort
-  { $limit: 10 }  // Limit
-]).exec();
-```
-
----
-
-## Common Patterns
-
-### CRUD Service Pattern
-```typescript
-@Injectable()
-export class MyService {
-  constructor(
-    @InjectModel(MyModel.name) private model: Model<MyDocument>,
-  ) {}
-
-  async create(dto: CreateDto): Promise<MyModel> {
-    const item = new this.model(dto);
-    return item.save();
-  }
-
-  async findAll(): Promise<MyModel[]> {
-    return this.model.find().exec();
-  }
-
-  async findOne(id: string): Promise<MyModel> {
-    const item = await this.model.findById(id).exec();
-    if (!item) {
-      throw new NotFoundException(`Item with ID ${id} not found`);
-    }
-    return item;
-  }
-
-  async update(id: string, dto: UpdateDto): Promise<MyModel> {
-    const item = await this.model
-      .findByIdAndUpdate(id, dto, { new: true })
-      .exec();
-    if (!item) {
-      throw new NotFoundException(`Item with ID ${id} not found`);
-    }
-    return item;
-  }
-
-  async remove(id: string): Promise<MyModel> {
-    const item = await this.model.findByIdAndDelete(id).exec();
-    if (!item) {
-      throw new NotFoundException(`Item with ID ${id} not found`);
-    }
-    return item;
-  }
-}
-```
-
-### CRUD Controller Pattern
-```typescript
-@Controller('items')
-export class MyController {
-  constructor(private readonly service: MyService) {}
-
-  @Post()
-  create(@Body() dto: CreateDto) {
-    return this.service.create(dto);
-  }
-
-  @Get()
-  findAll() {
-    return this.service.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.service.findOne(id);
-  }
-
-  @Put(':id')
-  update(@Param('id') id: string, @Body() dto: UpdateDto) {
-    return this.service.update(id, dto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.service.remove(id);
-  }
-}
-```
-
----
-
-## Error Handling
-
-### Common Exceptions
-```typescript
-import {
-  NotFoundException,
-  BadRequestException,
-  UnauthorizedException,
-  ForbiddenException,
-  ConflictException,
-  InternalServerErrorException,
-} from '@nestjs/common';
-
-// Throw errors
-throw new NotFoundException('Product not found');
-throw new BadRequestException('Invalid data');
-throw new ConflictException('Product already exists');
-```
-
-### Custom Error Messages
-```typescript
-throw new NotFoundException(`Product with ID ${id} not found`);
-```
-
----
-
-## DTO Patterns
-
-### Create DTO
-```typescript
-export class CreateItemDto {
-  @IsNotEmpty()
-  @IsString()
-  name: string;
-
-  @IsNotEmpty()
-  @IsNumber()
-  @Min(0)
-  price: number;
-
-  @IsOptional()
-  @IsString()
-  description?: string;
-}
-```
-
-### Update DTO
-```typescript
-import { PartialType } from '@nestjs/swagger';
-import { CreateItemDto } from './create-item.dto';
-
-export class UpdateItemDto extends PartialType(CreateItemDto) {}
-```
-
----
-
-## Schema Patterns
-
-### Basic Schema
-```typescript
-@Schema({ timestamps: true })
-export class Item {
-  @Prop({ required: true })
-  name: string;
-
-  @Prop({ required: true, default: 0 })
-  quantity: number;
-
-  @Prop()
-  description?: string;
-}
-
-export type ItemDocument = Item & Document;
-export const ItemSchema = SchemaFactory.createForClass(Item);
-```
-
-### Schema with References
-```typescript
-@Schema({ timestamps: true })
-export class Order {
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Product', required: true })
-  productId: string;
-
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User' })
-  userId?: string;
-}
-```
-
-### Schema with Indexes
-```typescript
-ItemSchema.index({ name: 1 });  // Single field index
-ItemSchema.index({ name: 1, category: 1 });  // Compound index
-ItemSchema.index({ name: 'text', description: 'text' });  // Text index
-```
-
-### Schema Transform
-```typescript
-ItemSchema.set('toJSON', {
-  transform: function(doc: any, ret: any) {
-    ret.id = ret._id;
-    delete ret._id;
-    delete ret.__v;
-    return ret;
-  }
-});
-```
-
----
-
-## Module Registration
-
-### Feature Module
-```typescript
-@Module({
-  imports: [
-    MongooseModule.forFeature([{ name: 'Item', schema: ItemSchema }]),
-  ],
-  controllers: [ItemsController],
-  providers: [ItemsService],
-})
-export class ItemsModule {}
-```
-
-### Root Module
-```typescript
-@Module({
-  imports: [
-    MongooseModule.forRoot('mongodb://localhost:27017/pos'),
-    ItemsModule,
-    // ... other modules
-  ],
-})
-export class AppModule {}
-```
-
----
-
-## Useful Commands
-
-### NPM Scripts
-```bash
-npm run start          # Start in production mode
-npm run start:dev      # Start in development (watch mode)
-npm run start:debug    # Start with debugger
-npm run build          # Build for production
-npm run test           # Run tests
-npm run test:watch     # Run tests in watch mode
-npm run lint           # Lint code
-npm run format         # Format code with Prettier
-```
-
-### MongoDB Shell Commands
-```javascript
-// Connect
-use pos
-
-// Find
-db.products.find()
-db.products.findOne({ name: "Laptop" })
-
-// Insert
-db.products.insertOne({ name: "Laptop", price: 999 })
-
-// Update
-db.products.updateOne({ name: "Laptop" }, { $set: { price: 899 } })
-
-// Delete
-db.products.deleteOne({ name: "Laptop" })
-```
-
----
-
-## TypeScript Types
-
-### Common Types
-```typescript
-// Primitives
-string
-number
-boolean
-null
-undefined
-
-// Arrays
-string[]
-number[]
-Array<string>
-
-// Objects
-{ name: string; age: number }
-Record<string, any>
-
-// Functions
-() => void
-(id: string) => Promise<Product>
-```
-
-### Generic Types
-```typescript
-Promise<Product>           // Promise that resolves to Product
-Model<ProductDocument>     // Mongoose model type
-Array<T>                   // Generic array
-```
-
----
-
-## Environment Variables
-
-### Using .env file
-```typescript
-// .env
+```env
+# MongoDB Configuration
 MONGODB_URI=mongodb://localhost:27017/pos
+
+# Enable Database Seeding (development only)
+ENABLE_SEED=false
+
+# Application Port
 PORT=3000
-JWT_SECRET=your-secret-key
-
-// In code
-process.env.MONGODB_URI
-process.env.PORT ?? 3000
 ```
 
-### Install dotenv
+### MongoDB Replica Set Setup (for Transactions)
+
+For full transaction support, configure MongoDB as a replica set:
+
 ```bash
-npm install @nestjs/config
+# Start MongoDB in replica set mode
+mongod --replSet rs0 --port 27017
+
+# In MongoDB shell, initialize replica set
+mongosh
+rs.initiate()
 ```
 
 ---
 
-## Testing Patterns
+## 📝 Logging
 
-### Service Test
+All services now include structured logging:
+
+### Log Levels
+- `error` - Errors and exceptions
+- `warn` - Warnings (e.g., hard deletes)
+- `log` - Important operations (e.g., order creation)
+- `debug` - Detailed operation info
+
+### Example Output
+```
+[OrdersService] Creating new order with 3 items
+[OrdersService] Transaction started
+[OrdersService] Stock updated for product Coffee: 50 -> 47
+[OrdersService] Order created with ID: 507f1f77bcf86cd799439011
+[OrdersService] Order 507f1f77bcf86cd799439011 created successfully with transaction
+```
+
+---
+
+## 🛍️ Order Creation
+
+### Server-Side Total Validation
+
+The server now computes and validates order totals. Client-provided totals must match server calculations (within 0.01 tolerance).
+
+**Request Example:**
+```json
+{
+  "items": [
+    {
+      "product": "507f1f77bcf86cd799439011",
+      "quantity": 2,
+      "subtotal": 9.98
+    }
+  ],
+  "total": 9.98,
+  "tax": 0.80,
+  "discount": 0.00,
+  "finalTotal": 10.78,
+  "paymentMethod": "cash",
+  "type": "sale"
+}
+```
+
+**Server Actions:**
+1. Fetches actual product prices from database
+2. Computes `actualSubtotal = product.sellingPrice × quantity`
+3. Validates client's subtotal matches (within 0.01)
+4. Computes final total with tax and discount
+5. Uses server-computed values to create order
+
+**Error Response (if totals don't match):**
+```json
+{
+  "statusCode": 400,
+  "message": "Total validation failed. Expected: 10.78, Received: 10.99"
+}
+```
+
+---
+
+## 🔒 Transaction Support
+
+### Automatic Transaction Detection
+
+Orders are created with transactions when MongoDB replica set is detected:
+
 ```typescript
-describe('ProductsService', () => {
-  let service: ProductsService;
-  let model: Model<ProductDocument>;
+// With Replica Set - Full ACID Transactions
+✅ All operations in single transaction
+✅ Automatic rollback on failure
+✅ Perfect consistency
 
-  beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      providers: [
-        ProductsService,
-        {
-          provide: getModelToken(Product.name),
-          useValue: mockModel,
-        },
-      ],
-    }).compile();
-
-    service = module.get<ProductsService>(ProductsService);
-    model = module.get<Model<ProductDocument>>(getModelToken(Product.name));
-  });
-
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-});
+// Without Replica Set - Atomic Operations
+✅ Atomic stock updates (no race conditions)
+✅ Manual rollback on failure
+✅ Best-effort consistency
 ```
 
----
+### Race Condition Prevention
 
-## Performance Tips
-
-1. **Use Indexes**: Index frequently queried fields
-2. **Limit Results**: Use `.limit()` and `.skip()` for pagination
-3. **Select Fields**: Use `.select()` to only fetch needed fields
-4. **Use Lean**: Use `.lean()` for read-only queries (faster)
-5. **Batch Operations**: Use `insertMany()` instead of multiple `save()`
+Stock updates use atomic conditional operations:
 
 ```typescript
-// Good: Only fetch needed fields
-await this.model.find().select('name price').exec();
+// This is ONE atomic database operation
+// Prevents race conditions between concurrent orders
+await productModel.findOneAndUpdate(
+  { _id: productId, stock: { $gte: quantity } }, // Condition
+  { $inc: { stock: -quantity } }                 // Update
+);
+```
 
-// Good: Use lean for read-only
-await this.model.find().lean().exec();
+**Concurrent Order Scenario:**
+```
+Product Stock: 5 units
 
-// Good: Pagination
-await this.model.find().skip(0).limit(10).exec();
+Order A (3 units) and Order B (4 units) created simultaneously:
+- One succeeds, one fails with "Insufficient stock"
+- Stock never goes negative
+- No manual locking required
 ```
 
 ---
 
-## Security Checklist
+## 🗑️ Soft Deletes
 
-- [ ] Validate all input (use DTOs)
-- [ ] Sanitize user input
-- [ ] Use environment variables for secrets
-- [ ] Enable CORS properly
-- [ ] Use HTTPS in production
-- [ ] Implement authentication
-- [ ] Implement authorization
-- [ ] Rate limiting
-- [ ] Input size limits
-- [ ] SQL injection prevention (MongoDB is safer, but still validate)
+### Orders Service
 
----
+**Soft Delete (Default - Recommended):**
+```http
+DELETE /orders/:id
+```
+- Sets `deletedAt` timestamp
+- Order hidden from listings
+- Data preserved for audit trail
+- Can be restored
 
-## Debugging Tips
-
-1. **Console Logging**
+**Hard Delete (Permanent):**
 ```typescript
-console.log('Debug:', data);
+// Not exposed via API by default - requires service modification
+await ordersService.hardDelete(orderId);
 ```
 
-2. **Use Debugger**
+**Restore Deleted Order:**
 ```typescript
-debugger;  // Set breakpoint
+await ordersService.restore(orderId);
 ```
 
-3. **Check Swagger**: Test endpoints in Swagger UI
-4. **Check MongoDB**: Verify data in database
-5. **Check Logs**: Look at server console output
+### Products Service
+
+Same soft delete functionality applies to products:
+
+```http
+DELETE /products/:id  # Soft delete
+```
 
 ---
 
-*Keep this reference handy while coding!*
+## 📊 API Changes
+
+### New Query Behavior
+
+All queries now exclude soft-deleted records by default:
+
+```typescript
+// GET /orders
+// Returns only non-deleted orders
+[
+  { "id": "...", "total": 100 },
+  { "id": "...", "total": 200 }
+  // Deleted orders not included
+]
+
+// GET /products
+// Returns only non-deleted products
+```
+
+### Soft-Deleted Records
+
+Soft-deleted records have `deletedAt` field:
+
+```json
+{
+  "id": "507f1f77bcf86cd799439011",
+  "total": 100,
+  "deletedAt": "2024-01-15T10:30:00.000Z"
+}
+```
+
+---
+
+## 🌱 Database Seeding
+
+### Enable Seeding
+
+Set environment variable:
+```bash
+ENABLE_SEED=true npm run start:dev
+```
+
+### Disable Seeding (Default)
+
+```bash
+npm run start:dev
+# or
+ENABLE_SEED=false npm run start:dev
+```
+
+### Seed Data
+
+The seed service creates:
+- 4 Categories (Beverages, Food, Snacks, Electronics)
+- 3 Suppliers
+- 4 Payment Methods
+- 6 Products
+
+### Behavior
+
+- Only seeds if database is empty (`productCount === 0`)
+- Logs all actions
+- Safe to run multiple times (idempotent)
+
+---
+
+## 🔍 Debugging & Monitoring
+
+### Check Transaction Support
+
+Look for this log message on startup:
+```
+[OrdersService] Creating new order with X items
+[OrdersService] Transaction started  # ← Transactions available
+```
+
+Or:
+```
+[OrdersService] MongoDB transactions not available. Using atomic operations...
+```
+
+### Monitor Stock Changes
+
+```
+[StockService] Recording out stock movement for product 507f...: 3 units
+[StockService] Stock movement recorded with ID 507f...
+```
+
+### Track Soft Deletes
+
+```
+[OrdersService] Soft deleting order 507f...
+[OrdersService] Order 507f... soft deleted successfully
+```
+
+### Hard Delete Warnings
+
+```
+[OrdersService] HARD DELETING order 507f... - This action is irreversible
+[OrdersService] Order 507f... permanently deleted
+```
+
+---
+
+## 🧪 Testing
+
+### Test Race Conditions
+
+Create concurrent orders for same product:
+
+```javascript
+// Both orders try to buy product with stock=5
+const [result1, result2] = await Promise.allSettled([
+  fetch('/orders', { 
+    method: 'POST', 
+    body: JSON.stringify({ items: [{ product: productId, quantity: 3 }] }) 
+  }),
+  fetch('/orders', { 
+    method: 'POST', 
+    body: JSON.stringify({ items: [{ product: productId, quantity: 4 }] }) 
+  })
+]);
+
+// One succeeds, one fails with 400 "Insufficient stock"
+```
+
+### Test Total Validation
+
+```javascript
+// Try to manipulate price
+const order = {
+  items: [
+    { product: coffeeId, quantity: 1, subtotal: 1.00 }  // Real price: 4.99
+  ],
+  total: 1.00,
+  finalTotal: 1.00,
+  // ...
+};
+
+// Server responds: 400 "Total validation failed. Expected: 4.99, Received: 1.00"
+```
+
+### Test Soft Deletes
+
+```javascript
+// Delete order
+const deleted = await fetch(`/orders/${orderId}`, { method: 'DELETE' });
+console.log(deleted.deletedAt); // timestamp
+
+// Verify not in list
+const orders = await fetch('/orders').then(r => r.json());
+console.log(orders.find(o => o.id === orderId)); // undefined
+```
+
+---
+
+## 📈 Performance Considerations
+
+### Indexes
+
+Soft delete queries use indexes:
+```javascript
+// Recommended index for performance
+db.orders.createIndex({ deletedAt: 1 });
+db.products.createIndex({ deletedAt: 1 });
+```
+
+### Query Patterns
+
+```javascript
+// Efficient - uses index
+.find({ deletedAt: { $exists: false } })
+
+// Include deleted records (admin view)
+.find({}) // No filter on deletedAt
+```
+
+---
+
+## 🚨 Common Issues & Solutions
+
+### Issue: "MongoDB transactions not available"
+
+**Cause:** MongoDB not configured as replica set
+
+**Solution:**
+```bash
+# Single-node replica set (development)
+mongod --replSet rs0
+mongosh
+rs.initiate()
+```
+
+### Issue: "Total validation failed"
+
+**Cause:** Client calculated total doesn't match server
+
+**Solutions:**
+1. Use server prices (don't cache prices client-side)
+2. Accept server-computed totals as source of truth
+3. Check for floating-point rounding (0.01 tolerance)
+
+### Issue: "Insufficient stock" on low-traffic site
+
+**Cause:** Stale product data on client
+
+**Solution:**
+1. Fetch fresh product data before order creation
+2. Handle 400 errors gracefully
+3. Show updated stock to user
+
+---
+
+## 📚 Code Examples
+
+### Create Order with Logging
+
+```typescript
+try {
+  const order = await orderService.create(createOrderDto);
+  console.log('Order created:', order.id);
+} catch (error) {
+  if (error.message.includes('Insufficient stock')) {
+    // Handle out of stock
+  } else if (error.message.includes('Total validation failed')) {
+    // Handle price mismatch
+  }
+}
+```
+
+### Soft Delete with Restore Option
+
+```typescript
+// Delete order
+await orderService.remove(orderId);
+
+// User changes mind - restore
+await orderService.restore(orderId);
+
+// Permanent delete (use sparingly)
+await orderService.hardDelete(orderId);
+```
+
+### Query Deleted Records (Admin)
+
+```typescript
+// Override soft delete filter
+const allOrders = await orderModel.find({}).exec();
+const deletedOrders = allOrders.filter(o => o.deletedAt);
+```
+
+---
+
+## ✅ Checklist for Production
+
+- [ ] MongoDB configured as replica set
+- [ ] `ENABLE_SEED=false` in production
+- [ ] Indexes created for `deletedAt` fields
+- [ ] Log aggregation configured (e.g., ELK, CloudWatch)
+- [ ] Monitor for transaction errors
+- [ ] Backup strategy for hard deletes
+- [ ] Client updated to handle total validation errors
+- [ ] Race condition tests passing
+
+---
+
+## 📞 Support
+
+For issues or questions:
+1. Check logs for detailed error messages
+2. Review `IMPROVEMENTS.md` for detailed explanations
+3. Test with `LOG_LEVEL=debug` for more details
 

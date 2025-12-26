@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
@@ -10,6 +10,8 @@ import { User, UserDocument } from '../schemas/user.schema';
 
 @Injectable()
 export class SeedService {
+  private readonly logger = new Logger(SeedService.name);
+
   constructor(
     @InjectModel(Product.name) private productModel: Model<ProductDocument>,
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
@@ -19,17 +21,24 @@ export class SeedService {
   ) {}
 
   async seedDatabase() {
-    // Seed admin user first
-    await this.seedAdminUser();
-
-    // Check if product data already exists
-    const productCount = await this.productModel.countDocuments();
-    if (productCount > 0) {
-      console.log('Database already seeded');
+    // Check if seeding is enabled via environment variable
+    const seedEnabled = process.env.ENABLE_SEED === 'true';
+    
+    if (!seedEnabled) {
+      this.logger.log('Database seeding is disabled. Set ENABLE_SEED=true to enable it.');
       return;
     }
 
-    console.log('Seeding database with initial data...');
+    this.logger.log('Checking if database needs seeding...');
+    
+    // Check if data already exists
+    const productCount = await this.productModel.countDocuments();
+    if (productCount > 0) {
+      this.logger.log('Database already contains data. Skipping seed.');
+      return;
+    }
+
+    this.logger.log('Seeding database with initial data...');
 
     // Seed Categories
     const categories = await this.categoryModel.insertMany([
@@ -124,7 +133,7 @@ export class SeedService {
       },
     ]);
 
-    console.log('✅ Database seeded successfully');
+    this.logger.log('✅ Database seeded successfully');
   }
 
   async seedAdminUser() {
