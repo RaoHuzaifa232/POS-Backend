@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import * as bcrypt from 'bcrypt';
 import { Product, ProductDocument } from '../schemas/product.schema';
 import { Category, CategoryDocument } from '../schemas/category.schema';
 import { Supplier, SupplierDocument } from '../schemas/supplier.schema';
 import { PaymentMethod, PaymentMethodDocument } from '../schemas/payment-method.schema';
+import { User, UserDocument } from '../schemas/user.schema';
 
 @Injectable()
 export class SeedService {
@@ -13,11 +15,14 @@ export class SeedService {
     @InjectModel(Category.name) private categoryModel: Model<CategoryDocument>,
     @InjectModel(Supplier.name) private supplierModel: Model<SupplierDocument>,
     @InjectModel(PaymentMethod.name) private paymentMethodModel: Model<PaymentMethodDocument>,
+    @InjectModel(User.name) private userModel: Model<UserDocument>,
   ) {}
 
   async seedDatabase() {
-    return;
-    // Check if data already exists
+    // Seed admin user first
+    await this.seedAdminUser();
+
+    // Check if product data already exists
     const productCount = await this.productModel.countDocuments();
     if (productCount > 0) {
       console.log('Database already seeded');
@@ -120,5 +125,30 @@ export class SeedService {
     ]);
 
     console.log('✅ Database seeded successfully');
+  }
+
+  async seedAdminUser() {
+    // Check if admin user already exists
+    const adminExists = await this.userModel.findOne({ email: 'admin@pos.com' });
+    if (adminExists) {
+      console.log('Admin user already exists');
+      return;
+    }
+
+    console.log('Creating admin user...');
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash('admin123', saltRounds);
+
+    await this.userModel.create({
+      email: 'admin@pos.com',
+      password: hashedPassword,
+      name: 'Admin User',
+      role: 'admin',
+      isActive: true,
+    });
+
+    console.log('✅ Admin user created:');
+    console.log('   Email: admin@pos.com');
+    console.log('   Password: admin123');
   }
 }

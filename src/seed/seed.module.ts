@@ -4,6 +4,7 @@ import { Product, ProductSchema } from '../schemas/product.schema';
 import { Category, CategorySchema } from '../schemas/category.schema';
 import { Supplier, SupplierSchema } from '../schemas/supplier.schema';
 import { PaymentMethod, PaymentMethodSchema } from '../schemas/payment-method.schema';
+import { User, UserSchema } from '../schemas/user.schema';
 import { SeedService } from './seed.service';
 
 @Module({
@@ -13,6 +14,7 @@ import { SeedService } from './seed.service';
       { name: Category.name, schema: CategorySchema },
       { name: Supplier.name, schema: SupplierSchema },
       { name: PaymentMethod.name, schema: PaymentMethodSchema },
+      { name: User.name, schema: UserSchema },
     ]),
   ],
   providers: [SeedService],

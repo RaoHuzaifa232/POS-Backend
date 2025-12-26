@@ -22,10 +22,13 @@ export class PurchasesService {
     const createdPurchase = new this.purchaseModel(purchaseData);
     await createdPurchase.save();
 
-    // Update product stock
+    // Update product stock and cost price with latest purchase price
     await this.productModel.findByIdAndUpdate(
       createPurchaseDto.productId,
-      { $inc: { stock: createPurchaseDto.quantity } }
+      { 
+        $inc: { stock: createPurchaseDto.quantity },
+        $set: { costPrice: createPurchaseDto.costPrice }
+      }
     );
 
     // Create stock movement
@@ -61,15 +64,13 @@ export class PurchasesService {
       throw new NotFoundException(`Purchase with ID ${id} not found`);
     }
 
+    const updateFields: any = {};
+
     // If quantity changed, adjust stock accordingly
     if (updatePurchaseDto.quantity !== undefined && 
         updatePurchaseDto.quantity !== existingPurchase.quantity) {
       const quantityDifference = updatePurchaseDto.quantity - existingPurchase.quantity;
-      
-      await this.productModel.findByIdAndUpdate(
-        existingPurchase.productId,
-        { $inc: { stock: quantityDifference } }
-      );
+      updateFields.$inc = { stock: quantityDifference };
 
       // Add stock movement for the adjustment
       await this.stockService.recordMovement(
@@ -78,6 +79,31 @@ export class PurchasesService {
         quantityDifference > 0 ? 'in' : 'out',
         `Purchase adjustment - ${existingPurchase.supplier}`,
         id,
+      );
+    }
+
+    // If cost price changed, update product cost price
+    // Check if this is the latest purchase for this product
+    if (updatePurchaseDto.costPrice !== undefined) {
+      const latestPurchase = await this.purchaseModel
+        .findOne({ productId: existingPurchase.productId })
+        .sort({ createdAt: -1 })
+        .exec();
+
+      // If this is the latest purchase (or will be after update), update product cost price
+      if (!latestPurchase || String(latestPurchase._id) === id) {
+        if (!updateFields.$set) {
+          updateFields.$set = {};
+        }
+        updateFields.$set.costPrice = updatePurchaseDto.costPrice;
+      }
+    }
+
+    // Update product if there are changes
+    if (Object.keys(updateFields).length > 0) {
+      await this.productModel.findByIdAndUpdate(
+        existingPurchase.productId,
+        updateFields
       );
     }
 
@@ -99,10 +125,41 @@ export class PurchasesService {
       throw new NotFoundException(`Purchase with ID ${id} not found`);
     }
 
+    // Check if this is the latest purchase (before deletion)
+    const latestPurchase = await this.purchaseModel
+      .findOne({ productId: purchaseToDelete.productId })
+      .sort({ createdAt: -1 })
+      .exec();
+
+    const isLatestPurchase = latestPurchase && String(latestPurchase._id) === id;
+
     // Reverse the stock increase from this purchase
+    const updateFields: any = {
+      $inc: { stock: -purchaseToDelete.quantity }
+    };
+
+    // If this is the latest purchase, update cost price to the previous purchase's cost price
+    if (isLatestPurchase) {
+      const previousPurchase = await this.purchaseModel
+        .findOne({ 
+          productId: purchaseToDelete.productId,
+          _id: { $ne: id }
+        })
+        .sort({ createdAt: -1 })
+        .exec();
+
+      if (previousPurchase) {
+        // Use the previous purchase's cost price
+        updateFields.$set = { costPrice: previousPurchase.costPrice };
+      } else {
+        // No other purchases, keep current cost price (or could set to 0)
+        // Keeping current is safer in case there are other references
+      }
+    }
+
     await this.productModel.findByIdAndUpdate(
       purchaseToDelete.productId,
-      { $inc: { stock: -purchaseToDelete.quantity } }
+      updateFields
     );
 
     // Add stock movement for the reversal

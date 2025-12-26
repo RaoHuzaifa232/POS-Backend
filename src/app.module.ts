@@ -14,6 +14,8 @@ import { PurchaseReturnsModule } from './purchase-returns/purchase-returns.modul
 import { PaymentMethodsModule } from './payment-methods/payment-methods.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { SeedModule } from './seed/seed.module';
+import { AuthModule } from './auth/auth.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -30,6 +32,8 @@ import { SeedModule } from './seed/seed.module';
     PaymentMethodsModule,
     DashboardModule,
     SeedModule,
+    AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

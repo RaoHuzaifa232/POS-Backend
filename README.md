@@ -25,6 +25,23 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## 📚 Learning Resources
+
+**New to backend development?** Check out these comprehensive guides:
+
+- **[Learning Roadmap](./LEARNING_ROADMAP.md)** ⭐ **START HERE** - 4-week structured learning path
+- **[Complete Backend Learning Guide](./BACKEND_LEARNING_GUIDE.md)** - Deep dive into backend concepts, NestJS, MongoDB, and architecture patterns
+- **[Hands-On Tutorial](./HANDS_ON_TUTORIAL.md)** - Step-by-step tutorial building a complete feature from scratch
+- **[Architecture Explained](./ARCHITECTURE_EXPLAINED.md)** - Visual guide showing how everything connects
+- **[Quick Reference](./QUICK_REFERENCE.md)** - Cheat sheet for common tasks and patterns
+
+**Recommended Learning Path**:
+1. Start with the [Learning Roadmap](./LEARNING_ROADMAP.md) to structure your journey
+2. Read the [Complete Backend Learning Guide](./BACKEND_LEARNING_GUIDE.md) for deep understanding
+3. Follow the [Hands-On Tutorial](./HANDS_ON_TUTORIAL.md) to build your first feature
+4. Use [Quick Reference](./QUICK_REFERENCE.md) as you code
+5. Refer to [Architecture Explained](./ARCHITECTURE_EXPLAINED.md) when you need visual understanding
+
 ## Project setup
 
 ```bash

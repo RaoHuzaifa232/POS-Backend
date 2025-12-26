@@ -9,8 +9,15 @@ export class DashboardController {
 
   @Get('inventory-report')
   @ApiOperation({ summary: 'Get inventory report' })
-  getInventoryReport() {
-    return this.dashboardService.getInventoryReport();
+  @ApiQuery({ name: 'period', required: false, description: 'Period in days (e.g., 30d)' })
+  @ApiQuery({ name: 'startDate', required: false, description: 'Start date (ISO format)' })
+  @ApiQuery({ name: 'endDate', required: false, description: 'End date (ISO format)' })
+  getInventoryReport(
+    @Query('period') period?: string,
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    return this.dashboardService.getInventoryReport(period, startDate, endDate);
   }
 
   @Get('low-stock')

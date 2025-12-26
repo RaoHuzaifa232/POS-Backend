@@ -13,9 +13,11 @@ export interface InventoryReport {
   lowStockItems: number;
   outOfStockItems: number;
   totalSales: number;
+  totalRevenue: number;
   totalPurchases: number;
   totalSalesReturns: number;
   totalPurchaseReturns: number;
+  grossProfit: number;
   profit: number;
 }
 
@@ -29,7 +31,56 @@ export class DashboardService {
     @InjectModel(PurchaseReturn.name) private purchaseReturnModel: Model<PurchaseReturnDocument>,
   ) {}
 
-  async getInventoryReport(): Promise<InventoryReport> {
+  async getInventoryReport(period?: string, startDate?: string, endDate?: string): Promise<InventoryReport> {
+    // Build date filter
+    let dateRange: { $gte: Date; $lte: Date } | null = null;
+    
+    if (startDate && endDate) {
+      // Custom date range
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0); // Start of day
+      
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999); // End of day
+      
+      dateRange = {
+        $gte: start,
+        $lte: end
+      };
+    } else if (period) {
+      // Predefined period
+      const days = parseInt(period.replace('d', '')) || 30;
+      const periodStartDate = new Date();
+      periodStartDate.setDate(periodStartDate.getDate() - days);
+      periodStartDate.setHours(0, 0, 0, 0); // Start of day
+      
+      const periodEndDate = new Date();
+      periodEndDate.setHours(23, 59, 59, 999); // End of today
+      
+      dateRange = {
+        $gte: periodStartDate,
+        $lte: periodEndDate
+      };
+    }
+
+    // Build match conditions for sales
+    const salesMatch: any = { type: 'sale' };
+    if (dateRange) {
+      salesMatch.createdAt = dateRange;
+    }
+
+    // Build match conditions for purchases (purchases use purchaseDate field)
+    const purchaseMatch: any = {};
+    if (dateRange) {
+      purchaseMatch.purchaseDate = dateRange;
+    }
+
+    // Build match conditions for returns (returns use returnDate field)
+    const returnsMatch: any = { status: 'approved' };
+    if (dateRange) {
+      returnsMatch.returnDate = dateRange;
+    }
+
     const [
       totalProducts,
       totalStockValue,
@@ -38,7 +89,8 @@ export class DashboardService {
       salesData,
       purchaseData,
       salesReturnsData,
-      purchaseReturnsData
+      purchaseReturnsData,
+      soldItemsData
     ] = await Promise.all([
       this.productModel.countDocuments(),
       this.productModel.aggregate([
@@ -47,19 +99,42 @@ export class DashboardService {
       this.productModel.countDocuments({ $expr: { $lte: ['$stock', '$minStock'] } }),
       this.productModel.countDocuments({ stock: 0 }),
       this.orderModel.aggregate([
-        { $match: { type: 'sale' } },
+        { $match: salesMatch },
         { $group: { _id: null, total: { $sum: '$finalTotal' } } }
       ]),
       this.purchaseModel.aggregate([
+        { $match: purchaseMatch },
         { $group: { _id: null, total: { $sum: '$totalCost' } } }
       ]),
       this.salesReturnModel.aggregate([
-        { $match: { status: 'approved' } },
+        { $match: returnsMatch },
         { $group: { _id: null, total: { $sum: '$totalAmount' } } }
       ]),
       this.purchaseReturnModel.aggregate([
-        { $match: { status: 'approved' } },
+        { $match: returnsMatch },
         { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+      ]),
+      // Calculate gross profit: sum of (revenue - COGS) for sold items
+      // Revenue = subtotal of sold items, COGS = quantity × costPrice
+      this.orderModel.aggregate([
+        { $match: salesMatch },
+        { $unwind: '$items' },
+        {
+          $lookup: {
+            from: 'products',
+            localField: 'items.product',
+            foreignField: '_id',
+            as: 'product'
+          }
+        },
+        { $unwind: '$product' },
+        {
+          $group: {
+            _id: null,
+            totalRevenue: { $sum: '$items.subtotal' },
+            totalCOGS: { $sum: { $multiply: ['$items.quantity', '$product.costPrice'] } }
+          }
+        }
       ])
     ]);
 
@@ -67,6 +142,14 @@ export class DashboardService {
     const totalPurchases = purchaseData[0]?.total || 0;
     const totalSalesReturns = salesReturnsData[0]?.total || 0;
     const totalPurchaseReturns = purchaseReturnsData[0]?.total || 0;
+    
+    // Calculate revenue and gross profit from sold items
+    // Note: Total Revenue = sum of item subtotals (before tax/discount)
+    //       Total Sales = sum of order finalTotals (after tax/discount)
+    // Currently they should be the same since tax=0 and discount=0
+    const totalRevenue = soldItemsData[0]?.totalRevenue || totalSales; // Fallback to totalSales if aggregation returns empty
+    const totalCOGS = soldItemsData[0]?.totalCOGS || 0;
+    const grossProfit = totalRevenue - totalCOGS;
 
     return {
       totalProducts,
@@ -74,9 +157,11 @@ export class DashboardService {
       lowStockItems: lowStockCount,
       outOfStockItems: outOfStockCount,
       totalSales,
+      totalRevenue,
       totalPurchases,
       totalSalesReturns,
       totalPurchaseReturns,
+      grossProfit,
       profit: totalSales - totalPurchases + totalPurchaseReturns - totalSalesReturns,
     };
   }
